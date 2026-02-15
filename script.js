@@ -11,6 +11,9 @@ const monthActualTotalEl = document.getElementById('month-actual-total');
 const monthBudgetEl = document.getElementById('month-budget');
 const monthRemainingEl = document.getElementById('month-remaining');
 const budgetHintEl = document.getElementById('budget-hint');
+const weekActualTotalEl = document.getElementById('week-actual-total');
+const weekRangeEl = document.getElementById('week-range');
+const weekByPaymentEl = document.getElementById('week-by-payment');
 const dayPlannedTotalEl = document.getElementById('day-planned-total');
 const dayActualTotalEl = document.getElementById('day-actual-total');
 
@@ -68,6 +71,19 @@ async function setBudget(ym, amount) {
   return await apiFetch('/budget', { method: 'POST', body: JSON.stringify({ ym, amount }) });
 }
 
+async function setPayment(item_id, payment_method) {
+  return await apiFetch(`/item/${item_id}/pay`, { method: 'POST', body: JSON.stringify({ payment_method }) });
+}
+
+const PAYMENT_METHODS = [
+  { value: 'CASH', label: '現金' },
+  { value: 'LIFE', label: 'LIFEカード' },
+  { value: 'PAYPAY', label: 'PAYPAY' },
+  { value: 'UC', label: 'UC' },
+  { value: 'SMBC', label: 'SMBC' },
+  { value: 'JCB', label: 'JCB' },
+];
+
 function createItemRow(item) {
   const row = document.createElement('div');
   row.className = `item-row ${item.is_bought ? 'bought' : ''}`;
@@ -99,6 +115,20 @@ function createItemRow(item) {
     await updateUI();
   });
 
+  const pay = document.createElement('select');
+  pay.className = 'item-pay';
+  PAYMENT_METHODS.forEach(opt => {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    pay.appendChild(o);
+  });
+  pay.value = item.payment_method || 'LIFE';
+  pay.addEventListener('change', async (e) => {
+    await setPayment(item.id, e.target.value);
+    await updateUI();
+  });
+
   const del = document.createElement('button');
   del.className = 'add-item-btn';
   del.textContent = '×';
@@ -113,6 +143,7 @@ function createItemRow(item) {
   row.appendChild(name);
   row.appendChild(planned);
   row.appendChild(actual);
+  row.appendChild(pay);
   row.appendChild(del);
   return row;
 }
@@ -184,6 +215,20 @@ async function updateUI() {
     const remEl = monthRemainingEl;
     if (remEl) {
       remEl.style.color = remaining < 0 ? '#c53030' : '';
+    }
+
+    if (weekActualTotalEl) weekActualTotalEl.textContent = yen(data.week?.actual || 0);
+    if (weekRangeEl) weekRangeEl.textContent = data.week?.start ? `${data.week.start}〜${data.week.end}` : '';
+
+    if (weekByPaymentEl) {
+      const by = data.week?.by_payment || {};
+      const lines = [];
+      for (const [k, v] of Object.entries(by)) {
+        const label = (PAYMENT_METHODS.find(p => p.value === k)?.label) || k;
+        const actual = yen(v.actual || 0);
+        lines.push(`${label}: ${actual}`);
+      }
+      weekByPaymentEl.textContent = lines.join(' / ');
     }
   } catch (e) {
     shopsContainer.innerHTML = '';

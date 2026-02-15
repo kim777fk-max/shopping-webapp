@@ -20,6 +20,7 @@ create table if not exists items (
   planned_price numeric default 0,
   actual_price numeric default 0,
   is_bought boolean default false,
+  payment_method text not null default 'LIFE',
   created_at timestamptz default now()
 );
 

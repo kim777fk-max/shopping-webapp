@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
       for (const shop of shops || []) {
         const { data: items, error: itemsErr } = await sb
           .from("items")
-          .select("id,name,planned_price,actual_price,is_bought")
+          .select("id,name,planned_price,actual_price,is_bought,payment_method")
           .eq("shop_id", shop.id)
           .order("id");
         if (itemsErr) return bad(itemsErr.message, 500);
@@ -112,6 +112,7 @@ Deno.serve(async (req) => {
             planned_price: pp,
             actual_price: ap,
             is_bought: !!it.is_bought,
+            payment_method: it.payment_method || 'LIFE',
           };
         });
 
@@ -155,6 +156,50 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (budgetErr) return bad(budgetErr.message, 500);
 
+      // week range (Mon-Sun)
+      const dayObj = new Date(`${d}T00:00:00Z`);
+      const jsDay = dayObj.getUTCDay(); // 0 Sun .. 6 Sat
+      const offset = (jsDay + 6) % 7; // Mon=0
+      const weekStart = new Date(dayObj);
+      weekStart.setUTCDate(dayObj.getUTCDate() - offset);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setUTCDate(weekStart.getUTCDate() + 7);
+      const weekStartIso = weekStart.toISOString().slice(0, 10);
+      const weekEndIso = weekEnd.toISOString().slice(0, 10);
+
+      const { data: weekShops, error: weekShopsErr } = await sb
+        .from("shops")
+        .select("id")
+        .gte("date", weekStartIso)
+        .lt("date", weekEndIso);
+      if (weekShopsErr) return bad(weekShopsErr.message, 500);
+
+      const weekShopIds = (weekShops || []).map((s) => s.id);
+      let weekPlanned = 0;
+      let weekActual = 0;
+      const weekByPay: Record<string, { planned: number; actual: number }> = {};
+
+      if (weekShopIds.length) {
+        const { data: weekItems, error: weekItemsErr } = await sb
+          .from("items")
+          .select("planned_price,actual_price,is_bought,payment_method")
+          .in("shop_id", weekShopIds);
+        if (weekItemsErr) return bad(weekItemsErr.message, 500);
+
+        for (const it of weekItems || []) {
+          const pm = it.payment_method || 'LIFE';
+          const pp = Number(it.planned_price || 0);
+          const ap = Number(it.actual_price || 0);
+          weekPlanned += pp;
+          if (!weekByPay[pm]) weekByPay[pm] = { planned: 0, actual: 0 };
+          weekByPay[pm].planned += pp;
+          if (it.is_bought) {
+            weekActual += ap;
+            weekByPay[pm].actual += ap;
+          }
+        }
+      }
+
       return json({
         date: d,
         shops: outShops,
@@ -167,6 +212,13 @@ Deno.serve(async (req) => {
         budget: {
           ym,
           amount: Number(budgetRow?.amount || 0),
+        },
+        week: {
+          start: weekStartIso,
+          end: weekEndIso,
+          planned: weekPlanned,
+          actual: weekActual,
+          by_payment: weekByPay,
         },
       });
     }
@@ -204,7 +256,7 @@ Deno.serve(async (req) => {
 
       const { data, error } = await sb
         .from("items")
-        .insert({ shop_id, name, planned_price, actual_price: planned_price, is_bought: false })
+        .insert({ shop_id, name, planned_price, actual_price: planned_price, is_bought: false, payment_method: 'LIFE' })
         .select("id")
         .single();
       if (error) return bad(error.message, 500);
@@ -227,6 +279,16 @@ Deno.serve(async (req) => {
       const body = await req.json();
       const actual_price = Number(body.actual_price || 0);
       const { error } = await sb.from("items").update({ actual_price }).eq("id", item_id);
+      if (error) return bad(error.message, 500);
+      return json({ ok: true });
+    }
+
+    const mItemPay = p.match(/^\/item\/(\d+)\/pay$/);
+    if (req.method === "POST" && mItemPay) {
+      const item_id = Number(mItemPay[1]);
+      const body = await req.json();
+      const payment_method = String(body.payment_method || 'LIFE');
+      const { error } = await sb.from("items").update({ payment_method }).eq("id", item_id);
       if (error) return bad(error.message, 500);
       return json({ ok: true });
     }
