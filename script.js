@@ -43,23 +43,23 @@ async function apiFetch(path, opts = {}) {
 }
 
 async function getDay(d) {
-  return await apiFetch(`/api/day?date=${encodeURIComponent(d)}`, {method: 'GET', headers: {}});
+  return await apiFetch(`/day?date=${encodeURIComponent(d)}`, {method: 'GET', headers: {}});
 }
 
 async function addShop(d, name) {
-  return await apiFetch('/api/shop', {method: 'POST', body: JSON.stringify({date: d, name})});
+  return await apiFetch('/shop', {method: 'POST', body: JSON.stringify({date: d, name})});
 }
 
 async function addItem(shop_id, name, planned_price) {
-  return await apiFetch('/api/item', {method: 'POST', body: JSON.stringify({shop_id, name, planned_price})});
+  return await apiFetch('/item', {method: 'POST', body: JSON.stringify({shop_id, name, planned_price})});
 }
 
 async function toggleItem(item_id, is_bought) {
-  return await apiFetch(`/api/item/${item_id}/toggle`, {method: 'POST', body: JSON.stringify({is_bought})});
+  return await apiFetch(`/item/${item_id}/toggle`, {method: 'POST', body: JSON.stringify({is_bought})});
 }
 
 async function setActual(item_id, actual_price) {
-  return await apiFetch(`/api/item/${item_id}/actual`, {method: 'POST', body: JSON.stringify({actual_price})});
+  return await apiFetch(`/item/${item_id}/actual`, {method: 'POST', body: JSON.stringify({actual_price})});
 }
 
 function createItemRow(item) {
