@@ -1,0 +1,4 @@
+# Supabase CLI config
+
+[functions.shopping]
+verify_jwt = false
