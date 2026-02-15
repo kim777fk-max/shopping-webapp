@@ -23,12 +23,17 @@
     <main>
       <section class="summary-section">
         <div class="card summary-card">
-          <h3>今月の予定合計</h3>
-          <p class="amount" id="month-planned-total">¥0</p>
+          <h3>今月の予算</h3>
+          <div class="budget-row">
+            <input id="month-budget" class="budget-input" type="number" placeholder="例: 30000">
+            <button id="save-budget" class="btn primary">保存</button>
+          </div>
+          <p class="small" id="budget-hint"></p>
         </div>
         <div class="card summary-card">
           <h3>今月の実費合計</h3>
           <p class="amount" id="month-actual-total">¥0</p>
+          <p class="small">残り: <span id="month-remaining">¥0</span></p>
         </div>
       </section>
 

@@ -7,8 +7,10 @@ let currentDate = `${year}-${month}-${day}`;
 const dateInput = document.getElementById('current-date');
 const displayDate = document.getElementById('display-date');
 const shopsContainer = document.getElementById('shops-container');
-const monthPlannedTotalEl = document.getElementById('month-planned-total');
 const monthActualTotalEl = document.getElementById('month-actual-total');
+const monthBudgetEl = document.getElementById('month-budget');
+const monthRemainingEl = document.getElementById('month-remaining');
+const budgetHintEl = document.getElementById('budget-hint');
 const dayPlannedTotalEl = document.getElementById('day-planned-total');
 const dayActualTotalEl = document.getElementById('day-actual-total');
 
@@ -60,6 +62,10 @@ async function toggleItem(item_id, is_bought) {
 
 async function setActual(item_id, actual_price) {
   return await apiFetch(`/item/${item_id}/actual`, {method: 'POST', body: JSON.stringify({actual_price})});
+}
+
+async function setBudget(ym, amount) {
+  return await apiFetch('/budget', { method: 'POST', body: JSON.stringify({ ym, amount }) });
 }
 
 function createItemRow(item) {
@@ -166,8 +172,19 @@ async function updateUI() {
     (data.shops || []).forEach(shop => shopsContainer.appendChild(createShopCard(shop)));
     dayPlannedTotalEl.textContent = yen(data.totals?.day_planned || 0);
     dayActualTotalEl.textContent = yen(data.totals?.day_actual || 0);
-    monthPlannedTotalEl.textContent = yen(data.totals?.month_planned || 0);
     monthActualTotalEl.textContent = yen(data.totals?.month_actual || 0);
+
+    const budget = Number(data.budget?.amount || 0);
+    const ym = String(data.budget?.ym || currentDate.slice(0,7));
+    if (monthBudgetEl) monthBudgetEl.value = budget ? String(Math.round(budget)) : '';
+    const remaining = budget - Number(data.totals?.month_actual || 0);
+    if (monthRemainingEl) monthRemainingEl.textContent = yen(remaining);
+    if (budgetHintEl) budgetHintEl.textContent = ym ? `${ym} の予算` : '';
+
+    const remEl = monthRemainingEl;
+    if (remEl) {
+      remEl.style.color = remaining < 0 ? '#c53030' : '';
+    }
   } catch (e) {
     shopsContainer.innerHTML = '';
     const err = document.createElement('div');
@@ -203,6 +220,16 @@ function setupEventListeners() {
     document.getElementById('new-shop-name').value = '';
     shopModal.classList.remove('hidden');
   });
+
+  const saveBudgetBtn = document.getElementById('save-budget');
+  if (saveBudgetBtn) {
+    saveBudgetBtn.addEventListener('click', async () => {
+      const ym = currentDate.slice(0, 7);
+      const amount = Number(monthBudgetEl?.value || 0);
+      await setBudget(ym, amount);
+      await updateUI();
+    });
+  }
 
   document.getElementById('cancel-shop').addEventListener('click', () => {
     shopModal.classList.add('hidden');

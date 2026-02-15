@@ -87,6 +87,9 @@ body {
   font-weight: 700;
   color: var(--primary-dark);
 }
+.small { font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px; }
+.budget-row { display: flex; gap: 8px; align-items: center; }
+.budget-input { flex: 1; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 1rem; }
 .daily-section { display: flex; flex-direction: column; gap: 16px; position: relative; }
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .section-header h2 { font-size: 1.25rem; font-weight: 600; }

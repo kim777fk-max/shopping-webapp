@@ -147,6 +147,14 @@ Deno.serve(async (req) => {
         }
       }
 
+      // budget
+      const { data: budgetRow, error: budgetErr } = await sb
+        .from("budgets")
+        .select("amount")
+        .eq("ym", ym)
+        .maybeSingle();
+      if (budgetErr) return bad(budgetErr.message, 500);
+
       return json({
         date: d,
         shops: outShops,
@@ -156,7 +164,24 @@ Deno.serve(async (req) => {
           month_planned: monthPlanned,
           month_actual: monthActual,
         },
+        budget: {
+          ym,
+          amount: Number(budgetRow?.amount || 0),
+        },
       });
+    }
+
+    if (req.method === "POST" && p === "/budget") {
+      const body = await req.json();
+      const ym = String(body.ym || "").slice(0, 7);
+      const amount = Number(body.amount || 0);
+      if (!ym) return bad("ym required", 400);
+
+      const { error } = await sb
+        .from("budgets")
+        .upsert({ ym, amount }, { onConflict: "ym" });
+      if (error) return bad(error.message, 500);
+      return json({ ok: true });
     }
 
     if (req.method === "POST" && p === "/shop") {
