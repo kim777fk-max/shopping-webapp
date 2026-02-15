@@ -18,7 +18,7 @@ type Json = Record<string, unknown>;
 
 const corsHeaders: Record<string, string> = {
   "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET,POST,OPTIONS",
+  "access-control-allow-methods": "GET,POST,DELETE,OPTIONS",
   "access-control-allow-headers": "authorization,content-type",
 };
 
@@ -202,6 +202,23 @@ Deno.serve(async (req) => {
       const body = await req.json();
       const actual_price = Number(body.actual_price || 0);
       const { error } = await sb.from("items").update({ actual_price }).eq("id", item_id);
+      if (error) return bad(error.message, 500);
+      return json({ ok: true });
+    }
+
+    const mItemDel = p.match(/^\/item\/(\d+)$/);
+    if (req.method === "DELETE" && mItemDel) {
+      const item_id = Number(mItemDel[1]);
+      const { error } = await sb.from("items").delete().eq("id", item_id);
+      if (error) return bad(error.message, 500);
+      return json({ ok: true });
+    }
+
+    const mShopDel = p.match(/^\/shop\/(\d+)$/);
+    if (req.method === "DELETE" && mShopDel) {
+      const shop_id = Number(mShopDel[1]);
+      // items are ON DELETE CASCADE
+      const { error } = await sb.from("shops").delete().eq("id", shop_id);
       if (error) return bad(error.message, 500);
       return json({ ok: true });
     }

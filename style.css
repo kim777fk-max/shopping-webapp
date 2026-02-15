@@ -100,7 +100,7 @@ body {
 .shop-name { font-weight: 600; font-size: 1.1rem; }
 .add-item-btn { font-size: 0.875rem; color: var(--primary-color); background: none; border: none; cursor: pointer; font-weight: 500; }
 .items-list { display: flex; flex-direction: column; gap: 8px; }
-.item-row { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; }
+.item-row { display: grid; grid-template-columns: auto 1fr auto auto auto; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; }
 .item-row:hover { background: var(--background-color); }
 .item-name { font-size: 0.95rem; }
 .item-price-planned { font-size: 0.875rem; color: var(--text-secondary); }

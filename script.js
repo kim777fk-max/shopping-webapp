@@ -93,10 +93,21 @@ function createItemRow(item) {
     await updateUI();
   });
 
+  const del = document.createElement('button');
+  del.className = 'add-item-btn';
+  del.textContent = '×';
+  del.title = '削除';
+  del.addEventListener('click', async () => {
+    if (!confirm(`「${item.name}」を削除しますか？`)) return;
+    await apiFetch(`/item/${item.id}`, { method: 'DELETE', headers: {} });
+    await updateUI();
+  });
+
   row.appendChild(check);
   row.appendChild(name);
   row.appendChild(planned);
   row.appendChild(actual);
+  row.appendChild(del);
   return row;
 }
 
@@ -111,6 +122,8 @@ function createShopCard(shop) {
   shopName.className = 'shop-name';
   shopName.textContent = shop.name;
 
+  const actions = document.createElement('div');
+
   const addBtn = document.createElement('button');
   addBtn.className = 'add-item-btn';
   addBtn.textContent = '+ 商品を追加';
@@ -121,8 +134,20 @@ function createShopCard(shop) {
     itemModal.classList.remove('hidden');
   });
 
+  const delBtn = document.createElement('button');
+  delBtn.className = 'add-item-btn';
+  delBtn.textContent = '削除';
+  delBtn.addEventListener('click', async () => {
+    if (!confirm(`「${shop.name}」を削除しますか？（中の商品も消えます）`)) return;
+    await apiFetch(`/shop/${shop.id}`, { method: 'DELETE', headers: {} });
+    await updateUI();
+  });
+
+  actions.appendChild(addBtn);
+  actions.appendChild(delBtn);
+
   header.appendChild(shopName);
-  header.appendChild(addBtn);
+  header.appendChild(actions);
 
   const list = document.createElement('div');
   list.className = 'items-list';
