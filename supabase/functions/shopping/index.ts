@@ -119,11 +119,17 @@ Deno.serve(async (req) => {
       }
 
       // month totals: select shops in month, then items join via shop_id
+      // compute [monthStart, nextMonthStart)
+      const monthStart = new Date(`${ym}-01T00:00:00Z`);
+      const nextMonthStart = new Date(Date.UTC(monthStart.getUTCFullYear(), monthStart.getUTCMonth() + 1, 1));
+      const monthStartIso = monthStart.toISOString().slice(0, 10);
+      const nextMonthStartIso = nextMonthStart.toISOString().slice(0, 10);
+
       const { data: monthShops, error: monthShopsErr } = await sb
         .from("shops")
         .select("id")
-        .gte("date", `${ym}-01`)
-        .lt("date", `${ym}-32`);
+        .gte("date", monthStartIso)
+        .lt("date", nextMonthStartIso);
       if (monthShopsErr) return bad(monthShopsErr.message, 500);
 
       const shopIds = (monthShops || []).map((s) => s.id);
