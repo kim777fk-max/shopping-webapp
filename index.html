@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>支出管理（予実）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <h1>支出管理</h1>
+      <div class="date-selector">
+        <button id="prev-day" class="icon-btn" aria-label="前日">&lt;</button>
+        <input type="date" id="current-date">
+        <button id="next-day" class="icon-btn" aria-label="翌日">&gt;</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="summary-section">
+        <div class="card summary-card">
+          <h3>今月の予定合計</h3>
+          <p class="amount" id="month-planned-total">¥0</p>
+        </div>
+        <div class="card summary-card">
+          <h3>今月の実費合計</h3>
+          <p class="amount" id="month-actual-total">¥0</p>
+        </div>
+      </section>
+
+      <section class="daily-section">
+        <div class="section-header">
+          <h2><span id="display-date"></span> の買い物</h2>
+          <div class="daily-totals">
+            <span class="badge planned">予定: <span id="day-planned-total">¥0</span></span>
+            <span class="badge actual">実費: <span id="day-actual-total">¥0</span></span>
+          </div>
+        </div>
+
+        <div id="shops-container" class="shops-grid"></div>
+
+        <button id="add-shop-btn" class="fab" aria-label="お店を追加">+</button>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <div id="shop-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>お店を追加</h3>
+      <input type="text" id="new-shop-name" placeholder="お店の名前 (例: スーパー)">
+      <div class="modal-actions">
+        <button id="cancel-shop" class="btn secondary">キャンセル</button>
+        <button id="save-shop" class="btn primary">追加</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="item-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>商品を追加</h3>
+      <input type="text" id="new-item-name" placeholder="商品名">
+      <input type="number" id="new-item-price" placeholder="予定価格">
+      <div class="modal-actions">
+        <button id="cancel-item" class="btn secondary">キャンセル</button>
+        <button id="save-item" class="btn primary">追加</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Set this after you deploy API on Render
+    window.API_BASE = "";
+    // Set a token if you enabled API_TOKEN
+    window.API_TOKEN = "";
+  </script>
+  <script src="./script.js"></script>
+</body>
+</html>
