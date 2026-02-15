@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>実績（Actual Purchase）</title>
+  <style>body{font-family:system-ui, -apple-system, 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;padding:1rem}</style>
+</head>
+<body>
+  <h1>買い物実績を登録（Actual）</h1>
+  <form id="form">
+    <label>日付: <input type="date" id="date" required></label><br><br>
+    <label>金額(¥): <input type="number" id="amount" step="0.01" required></label><br><br>
+    <label>カテゴリ: <input type="text" id="category" value="食費"></label><br><br>
+    <label>店舗: <input type="text" id="store"></label><br><br>
+    <label>内容: <input type="text" id="description"></label><br><br>
+    <button type="submit">送信</button>
+  </form>
+  <div id="status"></div>
+  <script>
+    const form = document.getElementById('form');
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const payload = {
+        type: 'actual',
+        date: document.getElementById('date').value || new Date().toISOString().slice(0,10),
+        amount: parseFloat(document.getElementById('amount').value||0),
+        category: document.getElementById('category').value||'',
+        store: document.getElementById('store').value||'',
+        description: document.getElementById('description').value||''
+      };
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.sendData){
+        window.Telegram.WebApp.sendData(JSON.stringify(payload));
+        document.getElementById('status').innerText = '送信しました。Telegramに戻ってください。';
+      } else {
+        document.getElementById('status').innerText = 'このページはTelegram WebAppとして開いてください。送信データ: ' + JSON.stringify(payload);
+      }
+    });
+  </script>
+</body>
+</html>
